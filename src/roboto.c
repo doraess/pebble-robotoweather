@@ -3,6 +3,7 @@
 #include "pebble_fonts.h"
 
 #include "http.h"
+#include "httpcapture.h"
 #include "util.h"
 #include "weather_layer.h"
 #include "time_layer.h"
@@ -74,6 +75,8 @@ void success(int32_t cookie, int http_status, DictionaryIterator* received, void
 	Tuple* temperature_tuple = dict_find(received, WEATHER_KEY_TEMPERATURE);
 	if(temperature_tuple) {
 		weather_layer_set_temperature(&weather_layer, temperature_tuple->value->int16);
+
+		http_capture_send(20);
 	}
 	
 	link_monitor_handle_success();
@@ -198,6 +201,8 @@ void handle_init(AppContextRef ctx)
     t.units_changed = SECOND_UNIT | MINUTE_UNIT | HOUR_UNIT | DAY_UNIT;
 	
 	handle_minute_tick(ctx, &t);
+
+	http_capture_init(ctx);
 }
 
 /* Shut down the application
@@ -233,6 +238,8 @@ void pbl_main(void *params)
 		}
     };
 
+	http_capture_main(&handlers);
+
     app_event_loop(params, &handlers);
 }
 
@@ -243,7 +250,7 @@ void request_weather() {
 	}
 	// Build the HTTP request
 	DictionaryIterator *body;
-	HTTPResult result = http_out_get("http://www.zone-mr.net/api/weather.php", WEATHER_HTTP_COOKIE, &body);
+	HTTPResult result = http_out_get("http://ofkorth.net/pebble/weather", false, WEATHER_HTTP_COOKIE, &body);
 	if(result != HTTP_OK) {
 		weather_layer_set_icon(&weather_layer, WEATHER_ICON_NO_WEATHER);
 		return;
