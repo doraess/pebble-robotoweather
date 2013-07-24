@@ -10,6 +10,8 @@
 #include "link_monitor.h"
 #include "config.h"
 
+#define MAKE_SCREENSHOT 1
+
 #define MY_UUID { 0x91, 0x41, 0xB6, 0x28, 0xBC, 0x89, 0x49, 0x8E, 0xB1, 0x47, 0x04, 0x9F, 0x49, 0xC0, 0x99, 0xAD }
 
 PBL_APP_INFO(MY_UUID,
@@ -75,8 +77,6 @@ void success(int32_t cookie, int http_status, DictionaryIterator* received, void
 	Tuple* temperature_tuple = dict_find(received, WEATHER_KEY_TEMPERATURE);
 	if(temperature_tuple) {
 		weather_layer_set_temperature(&weather_layer, temperature_tuple->value->int16);
-
-		http_capture_send(20);
 	}
 	
 	link_monitor_handle_success();
@@ -202,7 +202,9 @@ void handle_init(AppContextRef ctx)
 	
 	handle_minute_tick(ctx, &t);
 
+#if MAKE_SCREENSHOT
 	http_capture_init(ctx);
+#endif
 }
 
 /* Shut down the application
@@ -238,7 +240,9 @@ void pbl_main(void *params)
 		}
     };
 
+#if MAKE_SCREENSHOT
 	http_capture_main(&handlers);
+#endif
 
     app_event_loop(params, &handlers);
 }
